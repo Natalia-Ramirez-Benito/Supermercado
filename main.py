@@ -100,3 +100,47 @@ for record in data:
         my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2], record[3], record[4], record[5]), tags=('oddrow',))
     # incrementar el contador
     count += 1
+
+# Añadimos cuadros para añadir productos
+data_frame = LabelFrame(root, text="Añadir Productos")
+data_frame.pack(fill="x", expand="yes", padx=20)
+
+# ID Producto
+idp_label = Label(data_frame, text="ID Producto")
+idp_label.grid(row=0,column=0,padx=10, pady=10)
+idp_entry = Entry(data_frame)
+idp_entry.grid(row=0, column=1, padx=10, pady=10)
+
+# Nombre
+nombre_label = Label(data_frame, text="Nombre")
+nombre_label.grid(row=0,column=2,padx=10, pady=10)
+nombre_entry = Entry(data_frame)
+nombre_entry.grid(row=0, column=3, padx=10, pady=10)
+
+# ID Categoría
+idc_label = Label(data_frame, text="ID Categoria")
+idc_label.grid(row=0,column=4,padx=10, pady=10)
+idc_entry = Entry(data_frame)
+idc_entry.grid(row=0, column=5, padx=10, pady=10)
+
+# Medida
+medida_label = Label(data_frame, text="Medida")
+medida_label.grid(row=1,column=0,padx=10, pady=10)
+medida_entry = Entry(data_frame)
+medida_entry.grid(row=1, column=1, padx=10, pady=10)
+
+# Precio
+precio_label = Label(data_frame, text="Precio")
+precio_label.grid(row=1,column=2,padx=10, pady=10)
+precio_entry = Entry(data_frame)
+precio_entry.grid(row=1, column=3, padx=10, pady=10)
+
+# Stock
+stock_label = Label(data_frame, text="Stock")
+stock_label.grid(row=1,column=4,padx=10, pady=10)
+stock_entry = Entry(data_frame)
+stock_entry.grid(row=1, column=5, padx=10, pady=10)
+
+# Añadir Botones
+
+root.mainloop()
