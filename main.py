@@ -1,10 +1,47 @@
 from tkinter import *
 from tkinter import ttk
+import sqlite3
 
 root = Tk()
 root.title('Supermercado Mercadona - Natalia Ramírez')
 #root.iconbitmap('C:\Users\natal\Desktop\DAM\Segundo\GEMP\Hitos\Supermercado\img\mercadona.ico')
 root.geometry("1000x500")
+
+# Database
+
+# Producto
+
+# Conectar a una base de datos
+conn = sqlite3.connect('data.sqlite')
+
+# Cursor
+c = conn.cursor()
+
+def query_database():
+    # Conectar a una base de datos
+    conn = sqlite3.connect('data.sqlite')
+    # Cursor
+    c = conn.cursor()
+    c.execute("SELECT * FROM producto")
+    records = c.fetchall()
+
+    global count
+    count = 0
+
+    for record in records:
+        if count % 2 == 0:
+            my_tree.insert(parent='', index='end', iid=count, text='', values=(record[1], record[2], record[0], record[3], record[4], record[5]), tags=('evenrow',))
+        else:
+            my_tree.insert(parent='', index='end', iid=count, text='', values=(record[1], record[2], record[0], record[3], record[4], record[5]), tags=('oddrow',))
+        count += 1
+
+    conn.commit()
+    conn.close()
+
+
+conn.commit()
+
+conn.close()
 
 # Añadir un estilo
 style = ttk.Style()
@@ -59,47 +96,11 @@ my_tree.heading("Medida", text="Medida", anchor=CENTER)
 my_tree.heading("Precio", text="Precio", anchor=CENTER)
 my_tree.heading("Stock", text="Stock", anchor=CENTER)
 
-# Add Fake Data
-
-data = [
-	["John", "Elder", "123 Elder St.", "Las Vegas", "NV", "89137"],
-	["Mary", "Smith", "435 West Lookout", "Chicago", "IL", "60610"],
-	["Tim", "Tanaka", "246 Main St.", "New York", "NY", "12345"],
-	["Erin", "Erinton", "333 Top Way.", "Los Angeles", "CA", "90210"],
-	["Bob", "Bobberly", "876 Left St.", "Memphis", "TN", "34321"],
-	["Steve", "Smith", "1234 Main St.", "Miami", "FL", "12321"],
-	["Tina", "Browne", "654 Street Ave.", "Chicago", "IL", "60611"],
-	["Mark", "Lane", "12 East St.", "Nashville", "TN", "54345"],
-	["John", "Smith", "678 North Ave.", "St. Louis", "MO", "67821"],
-	["Mary", "Todd", "9 Elder Way.", "Dallas", "TX", "88948"],
-	["John", "Lincoln", "123 Elder St.", "Las Vegas", "NV", "89137"],
-	["Mary", "Bush", "435 West Lookout", "Chicago", "IL", "60610"],
-	["Tim", "Reagan", "246 Main St.", "New York", "NY", "12345"],
-	["Erin", "Smith", "333 Top Way.", "Los Angeles", "CA", "90210"],
-	["Bob", "Field", "876 Left St.", "Memphis", "TN", "34321"],
-	["Steve", "Target", "1234 Main St.", "Miami", "FL", "12321"],
-	["Tina", "Walton", "654 Street Ave.", "Chicago", "IL", "60611"],
-	["Mark", "Erendale", "12 East St.", "Nashville", "TN", "54345"],
-	["John", "Nowerton", "678 North Ave.", "St. Louis", "MO", "67821"],
-	["Mary", "Hornblower", "9 Elder Way.", "Dallas", "TX", "88948"]
-	
-]
 
 # Crear Striped Row Tags
 my_tree.tag_configure('oddrow', background="white")
 my_tree.tag_configure('evenrow', background="lightblue")
 
-# Añadir nuestros datos a la pantalla
-global count
-count = 0
-
-for record in data:
-    if count % 2 == 0:
-        my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2], record[3], record[4], record[5]), tags=('evenrow',))
-    else:
-        my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2], record[3], record[4], record[5]), tags=('oddrow',))
-    # incrementar el contador
-    count += 1
 
 # Añadimos cuadros para añadir productos
 data_frame = LabelFrame(root, text="Añadir Productos")
@@ -142,5 +143,121 @@ stock_entry = Entry(data_frame)
 stock_entry.grid(row=1, column=5, padx=10, pady=10)
 
 # Añadir Botones
+
+button_frame = LabelFrame(root, text="Botones")
+button_frame.pack(fill="x", expand="yes", padx=20)
+
+# Eliminar texto de las cajas
+def clear_entries():
+    # Borrar datos
+    idp_entry.delete(0, END)
+    nombre_entry.delete(0, END)
+    idc_entry.delete(0, END)
+    medida_entry.delete(0, END)
+    precio_entry.delete(0, END)
+    stock_entry.delete(0, END)
+
+# Mover Arriba
+def up():
+    rows = my_tree.selection()
+    for row in rows:
+        my_tree.move(row, my_tree.parent(row), my_tree.index(row)-1)
+
+# Mover Abajo
+def down():
+    rows = my_tree.selection()
+    for row in reversed(rows):
+        my_tree.move(row, my_tree.parent(row), my_tree.index(row)+1)
+
+# Eliminar un registro
+def remove_one():
+    x = my_tree.selection()[0]
+    my_tree.delete(x)
+
+# Eliminar varios registros
+def remove_many():
+    x = my_tree.selection()
+    for record in x:
+        my_tree.delete(record)
+
+# Eliminar todos los registros
+def remove_all():
+    for record in my_tree.get_children():
+        my_tree.delete(record)
+
+# Actualizar registro
+def update_record():
+    selected = my_tree.focus()
+    my_tree.item(selected, text="", values=(idp_entry.get(), nombre_entry.get(), idc_entry.get(), medida_entry.get(), precio_entry.get(), stock_entry.get()))
+    # Borrar datos
+    idp_entry.delete(0, END)
+    nombre_entry.delete(0, END)
+    idc_entry.delete(0, END)
+    medida_entry.delete(0, END)
+    precio_entry.delete(0, END)
+    stock_entry.delete(0, END)
+
+select_record_button = Button(button_frame, text="Eliminar texto de las cajas", command=clear_entries)
+select_record_button.grid(row=0, column=7, padx=10, pady=10)
+
+# Actualizar
+update_button = Button(button_frame, text="Actualizar registro", command=update_record)
+update_button.grid(row=0, column=0, padx=10, pady=10)
+
+# Añadir
+add_button = Button(button_frame, text="Añadir registro")
+add_button.grid(row=0, column=1, padx=10, pady=10)
+
+# Eliminar todo
+remove_all_button = Button(button_frame, text="Eliminar todo", command=remove_all)
+remove_all_button.grid(row=0, column=2, padx=10, pady=10)
+
+# Eliminar un registro
+remove_one_button = Button(button_frame, text="Eliminar uno", command=remove_one)
+remove_one_button.grid(row=0, column=3, padx=10, pady=10)
+
+# Eliminar varios registros
+remove_many_button = Button(button_frame, text="Eliminar varios", command=remove_many)
+remove_many_button.grid(row=0, column=4, padx=10, pady=10)
+
+# Mover arriba
+move_up_button = Button(button_frame, text="Mover arriba", command=up)
+move_up_button.grid(row=0, column=5, padx=10, pady=10)
+
+# Mover abajo
+move_down_button = Button(button_frame, text="Mover abajo", command=down)
+move_down_button.grid(row=0, column=6, padx=10, pady=10)
+
+# Eliminar texto de las cajas
+select_record_button = Button(button_frame, text="Eliminar texto de las cajas", command=clear_entries)
+select_record_button.grid(row=0, column=7, padx=10, pady=10)
+
+# Elegir registro
+def select_record(e):
+    # Borrar datos
+    idp_entry.delete(0, END)
+    nombre_entry.delete(0, END)
+    idc_entry.delete(0, END)
+    medida_entry.delete(0, END)
+    precio_entry.delete(0, END)
+    stock_entry.delete(0, END)
+
+    # Coger los datos del registro seleccionado
+    selected = my_tree.focus()
+    values = my_tree.item(selected, 'values')
+
+    # Poner los valores en las cajas
+    idp_entry.insert(0, values[0])
+    nombre_entry.insert(0, values[1])
+    idc_entry.insert(0, values[2])
+    medida_entry.insert(0, values[3])
+    precio_entry.insert(0, values[4])
+    stock_entry.insert(0, values[5])
+
+
+# Bind the treeview
+my_tree.bind("<ButtonRelease-1>", select_record)
+
+query_database()
 
 root.mainloop()
