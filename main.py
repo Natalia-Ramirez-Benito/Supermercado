@@ -30,9 +30,9 @@ def query_database():
 
     for record in records:
         if count % 2 == 0:
-            my_tree.insert(parent='', index='end', iid=count, text='', values=(record[1], record[2], record[0], record[3], record[4], record[5]), tags=('evenrow',))
+            my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2], record[3], record[4], record[5]), tags=('evenrow',))
         else:
-            my_tree.insert(parent='', index='end', iid=count, text='', values=(record[1], record[2], record[0], record[3], record[4], record[5]), tags=('oddrow',))
+            my_tree.insert(parent='', index='end', iid=count, text='', values=(record[0], record[1], record[2], record[3], record[4], record[5]), tags=('oddrow',))
         count += 1
 
     conn.commit()
@@ -76,21 +76,21 @@ my_tree.pack()
 tree_scroll.config(command=my_tree.yview)
 
 # Definir nuestras columnas
-my_tree['columns'] = ["ID Producto", "Nombre", "ID Categoria", "Medida", "Precio", "Stock"]
+my_tree['columns'] = ["Nombre", "ID Producto", "ID Categoria", "Medida", "Precio", "Stock"]
 
 # Formatear las columnas
 my_tree.column("#0", width=0, stretch=NO)
-my_tree.column("ID Producto", anchor=CENTER, width=100)
-my_tree.column("Nombre", anchor=W, width=140)
-my_tree.column("ID Categoria", anchor=CENTER, width=100)
+my_tree.column("ID Producto", anchor=W, width=200)
+my_tree.column("Nombre", anchor=CENTER, width=80)
+my_tree.column("ID Categoria", anchor=CENTER, width=80)
 my_tree.column("Medida", anchor=CENTER, width=140)
 my_tree.column("Precio", anchor=CENTER, width=140)
 my_tree.column("Stock", anchor=CENTER, width=140)
 
 # Creamos los Headings
 my_tree.heading("#0", text="", anchor=W)
-my_tree.heading("ID Producto", text="ID Producto", anchor=CENTER)
-my_tree.heading("Nombre", text="Nombre", anchor=W)
+my_tree.heading("ID Producto", text="Nombre", anchor=W)
+my_tree.heading("Nombre", text="ID Producto", anchor=CENTER)
 my_tree.heading("ID Categoria", text="ID Categoria", anchor=CENTER)
 my_tree.heading("Medida", text="Medida", anchor=CENTER)
 my_tree.heading("Precio", text="Precio", anchor=CENTER)
@@ -112,17 +112,18 @@ idp_label.grid(row=0,column=0,padx=10, pady=10)
 idp_entry = Entry(data_frame)
 idp_entry.grid(row=0, column=1, padx=10, pady=10)
 
-# Nombre
-nombre_label = Label(data_frame, text="Nombre")
-nombre_label.grid(row=0,column=2,padx=10, pady=10)
-nombre_entry = Entry(data_frame)
-nombre_entry.grid(row=0, column=3, padx=10, pady=10)
-
-# ID Categoría
-idc_label = Label(data_frame, text="ID Categoria")
-idc_label.grid(row=0,column=4,padx=10, pady=10)
+# ID Categoria
+idc_label = Label(data_frame, text="Nombre")
+idc_label.grid(row=0,column=2,padx=10, pady=10)
 idc_entry = Entry(data_frame)
-idc_entry.grid(row=0, column=5, padx=10, pady=10)
+idc_entry.grid(row=0, column=3, padx=10, pady=10)
+
+# Nombre
+nombre_label = Label(data_frame, text="ID Categoria")
+nombre_label.grid(row=0,column=4,padx=10, pady=10)
+nombre_entry = Entry(data_frame)
+nombre_entry.grid(row=0, column=5, padx=10, pady=10)
+
 
 # Medida
 medida_label = Label(data_frame, text="Medida")
@@ -150,9 +151,9 @@ button_frame.pack(fill="x", expand="yes", padx=20)
 # Eliminar texto de las cajas
 def clear_entries():
     # Borrar datos
-    idp_entry.delete(0, END)
     nombre_entry.delete(0, END)
     idc_entry.delete(0, END)
+    idp_entry.delete(0, END)
     medida_entry.delete(0, END)
     precio_entry.delete(0, END)
     stock_entry.delete(0, END)
@@ -173,6 +174,14 @@ def down():
 def remove_one():
     x = my_tree.selection()[0]
     my_tree.delete(x)
+    
+    # Borrar datos
+    nombre_entry.delete(0, END)
+    idc_entry.delete(0, END)
+    idp_entry.delete(0, END)
+    medida_entry.delete(0, END)
+    precio_entry.delete(0, END)
+    stock_entry.delete(0, END)
 
 # Eliminar varios registros
 def remove_many():
@@ -188,14 +197,74 @@ def remove_all():
 # Actualizar registro
 def update_record():
     selected = my_tree.focus()
-    my_tree.item(selected, text="", values=(idp_entry.get(), nombre_entry.get(), idc_entry.get(), medida_entry.get(), precio_entry.get(), stock_entry.get()))
+    my_tree.item(selected, text="", values=(nombre_entry.get(), idc_entry.get(), idp_entry.get(), medida_entry.get(), precio_entry.get(), stock_entry.get()))
+    
+    # Actualizar la base de datos
+    # Conectar a una base de datos
+    conn = sqlite3.connect('data.sqlite')
+    # Cursor
+    c = conn.cursor()
+    c.execute("SELECT * FROM producto")
+
+    c.execute("""UPDATE producto SET 
+              nombre = :nombre, 
+              idcategoria = :idcategoria, 
+              idproducto = :idproducto, 
+              medida = :medida, 
+              precio = :precio, 
+              stock = :stock 
+              WHERE idproducto = :idproducto""", 
+                            {
+               'nombre': nombre_entry.get(),
+               'idcategoria': idc_entry.get(),
+               'idproducto': idp_entry.get(),
+               'medida': medida_entry.get(),
+               'precio': precio_entry.get(),
+               'stock': stock_entry.get()
+              })
+
+    conn.commit()
+    conn.close()
+    
     # Borrar datos
-    idp_entry.delete(0, END)
     nombre_entry.delete(0, END)
     idc_entry.delete(0, END)
+    idp_entry.delete(0, END)
     medida_entry.delete(0, END)
     precio_entry.delete(0, END)
     stock_entry.delete(0, END)
+
+# Añadir 
+def add_record():
+    # Conectar a una base de datos
+    conn = sqlite3.connect('data.sqlite')
+    # Cursor
+    c = conn.cursor()
+    c.execute("INSERT INTO producto VALUES (:nombre, :idcategoria, :idproducto, :medida, :precio, :stock)",
+              {
+               'nombre': nombre_entry.get(),
+               'idcategoria': idc_entry.get(),
+               'idproducto': idp_entry.get(),
+               'medida': medida_entry.get(),
+               'precio': precio_entry.get(),
+               'stock': stock_entry.get()
+              })
+
+    conn.commit()
+    conn.close()
+
+    my_tree.delete(*my_tree.get_children())
+
+    query_database()
+    
+    # Borrar datos
+    nombre_entry.delete(0, END)
+    idc_entry.delete(0, END)
+    idp_entry.delete(0, END)
+    medida_entry.delete(0, END)
+    precio_entry.delete(0, END)
+    stock_entry.delete(0, END)    
+
 
 select_record_button = Button(button_frame, text="Eliminar texto de las cajas", command=clear_entries)
 select_record_button.grid(row=0, column=7, padx=10, pady=10)
@@ -205,7 +274,7 @@ update_button = Button(button_frame, text="Actualizar registro", command=update_
 update_button.grid(row=0, column=0, padx=10, pady=10)
 
 # Añadir
-add_button = Button(button_frame, text="Añadir registro")
+add_button = Button(button_frame, text="Añadir registro", command=add_record)
 add_button.grid(row=0, column=1, padx=10, pady=10)
 
 # Eliminar todo
@@ -235,9 +304,9 @@ select_record_button.grid(row=0, column=7, padx=10, pady=10)
 # Elegir registro
 def select_record(e):
     # Borrar datos
-    idp_entry.delete(0, END)
     nombre_entry.delete(0, END)
     idc_entry.delete(0, END)
+    idp_entry.delete(0, END)
     medida_entry.delete(0, END)
     precio_entry.delete(0, END)
     stock_entry.delete(0, END)
@@ -247,9 +316,9 @@ def select_record(e):
     values = my_tree.item(selected, 'values')
 
     # Poner los valores en las cajas
-    idp_entry.insert(0, values[0])
-    nombre_entry.insert(0, values[1])
-    idc_entry.insert(0, values[2])
+    nombre_entry.insert(0, values[0])
+    idc_entry.insert(0, values[1])
+    idp_entry.insert(0, values[2])
     medida_entry.insert(0, values[3])
     precio_entry.insert(0, values[4])
     stock_entry.insert(0, values[5])
